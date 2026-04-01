@@ -1,0 +1,187 @@
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Trash2, Clock, ShoppingBag } from 'lucide-react';
+import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
+import { orderApi } from '../api/orderApi';
+import CartItem from '../components/cart/CartItem';
+
+const CartPage = () => {
+  const navigate = useNavigate();
+  const { items, getTotal, clearCart } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
+  const [pickupTime, setPickupTime] = useState('');
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Generate time slots
+  const generateTimeSlots = () => {
+    const slots = [];
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Start from next 10-minute interval
+    let startHour = currentHour;
+    let startMinute = Math.ceil(currentMinute / 10) * 10;
+    
+    if (startMinute >= 60) {
+      startHour += 1;
+      startMinute = 0;
+    }
+
+    // Generate slots until 8 PM
+    for (let hour = startHour; hour < 20; hour++) {
+      for (let min = 0; min < 60; min += 10) {
+        const time = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+        slots.push(time);
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  const handlePlaceOrder = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    if (!pickupTime) {
+      setError('Please select a pickup time');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      // Prepare order data
+      const orderData = {
+        items: items.map(item => ({
+          menuItemId: item.menuItem.id,
+          quantity: item.quantity,
+          notes: item.notes
+        })),
+        pickupTime: new Date().toISOString().split('T')[0] + 'T' + pickupTime + ':00',
+        notes,
+        paymentMethod: 'cash'
+      };
+
+      const response = await orderApi.create(orderData);
+      
+      // Clear cart and navigate to confirmation
+      clearCart();
+      navigate(`/orders/${response.data.data.order.id}/confirm`);
+    } catch (err) {
+      console.error('Order error:', err);
+      setError(err.response?.data?.message || 'Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Your cart is empty</h2>
+          <p className="text-gray-500 mb-6">Looks like you haven't added any items yet.</p>
+          <Link to="/menu" className="btn-primary">
+            Browse Menu
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Your Cart</h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Cart Items */}
+          <div className="lg:col-span-2 space-y-4">
+            {items.map(item => (
+              <CartItem key={item.menuItem.id} item={item} />
+            ))}
+          </div>
+
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
+              <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+              
+              {/* Pickup Time */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Clock className="w-4 h-4 inline mr-1" />
+                  Select Pickup Time
+                </label>
+                <select
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">Choose a time...</option>
+                  {timeSlots.map(slot => (
+                    <option key={slot} value={slot}>{slot}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Special Instructions
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any special instructions..."
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  rows={3}
+                />
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Summary */}
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between text-gray-600">
+                  <span>Items ({items.reduce((acc, item) => acc + item.quantity, 0)})</span>
+                  <span>₹{getTotal().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-lg">
+                  <span>Total</span>
+                  <span className="text-primary-500">₹{getTotal().toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Place Order Button */}
+              <button
+                onClick={handlePlaceOrder}
+                disabled={loading || !pickupTime}
+                className="w-full btn-primary mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Placing Order...' : 'Place Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CartPage;
+
