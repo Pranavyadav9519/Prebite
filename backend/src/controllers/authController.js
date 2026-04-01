@@ -3,7 +3,14 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../config/db');
 const apiResponse = require('../utils/apiResponse');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'prebite_jwt_secret_key_2025';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required');
+}
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+if (!JWT_REFRESH_SECRET) {
+  throw new Error('FATAL: JWT_REFRESH_SECRET environment variable is required');
+}
 const JWT_EXPIRES_IN = '15m';
 const JWT_REFRESH_EXPIRES_IN = '7d';
 
@@ -54,7 +61,7 @@ const register = async (req, res, next) => {
 
     const refreshToken = jwt.sign(
       { userId: user.id },
-      process.env.JWT_REFRESH_SECRET || JWT_SECRET,
+      JWT_REFRESH_SECRET,
       { expiresIn: JWT_REFRESH_EXPIRES_IN }
     );
 
@@ -103,7 +110,7 @@ const login = async (req, res, next) => {
 
     const refreshToken = jwt.sign(
       { userId: user.id },
-      process.env.JWT_REFRESH_SECRET || JWT_SECRET,
+      JWT_REFRESH_SECRET,
       { expiresIn: JWT_REFRESH_EXPIRES_IN }
     );
 
@@ -132,7 +139,7 @@ const refreshToken = async (req, res, next) => {
     // Verify refresh token
     const decoded = jwt.verify(
       token,
-      process.env.JWT_REFRESH_SECRET || JWT_SECRET
+      JWT_REFRESH_SECRET
     );
 
     // Get user

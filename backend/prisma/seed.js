@@ -292,13 +292,13 @@ async function main() {
   console.log('Student created:', student.email);
 
   // Create menu items
-  for (const item of menuItems) {
-    await prisma.menuItem.upsert({
-      where: { id: item.name.toLowerCase().replace(/\s+/g, '-') },
-      update: item,
-      create: item
-    });
-  }
+  await prisma.menuItem.deleteMany();
+  console.log('Cleared existing menu items');
+
+  await prisma.menuItem.createMany({
+    data: menuItems,
+    skipDuplicates: true
+  });
   console.log(`Created ${menuItems.length} menu items`);
 
   console.log('Seed completed successfully!');

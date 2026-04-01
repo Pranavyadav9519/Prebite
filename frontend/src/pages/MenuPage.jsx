@@ -18,7 +18,10 @@ const MenuPage = () => {
   const cartCount = getItemCount();
 
   useEffect(() => {
-    fetchMenuItems();
+    const timer = setTimeout(() => {
+      fetchMenuItems();
+    }, 400);
+    return () => clearTimeout(timer);
   }, [selectedCategory, searchQuery]);
 
   const fetchMenuItems = async () => {
