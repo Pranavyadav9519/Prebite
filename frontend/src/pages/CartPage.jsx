@@ -1,41 +1,49 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Trash2, Clock, ShoppingBag } from 'lucide-react';
+import { Clock, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
 import { orderApi } from '../api/orderApi';
 import CartItem from '../components/cart/CartItem';
 
+const loadRazorpayCheckout = () => {
+  if (window.Razorpay) {
+    return Promise.resolve(true);
+  }
+
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const CartPage = () => {
   const navigate = useNavigate();
   const { items, getTotal, clearCart } = useCartStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [pickupTime, setPickupTime] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Generate time slots
+  // Generate time slots starting 15 min from now
   const generateTimeSlots = () => {
     const slots = [];
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    
-    // Start from next 10-minute interval
-    let startHour = currentHour;
-    let startMinute = Math.ceil(currentMinute / 10) * 10;
-    
-    if (startMinute >= 60) {
-      startHour += 1;
-      startMinute = 0;
-    }
+    const earliest = new Date(now.getTime() + 15 * 60 * 1000);
+    let startHour = earliest.getHours();
+    let startMinute = Math.ceil(earliest.getMinutes() / 10) * 10;
+    if (startMinute >= 60) { startHour += 1; startMinute = 0; }
 
-    // Generate slots until 8 PM
-    for (let hour = startHour; hour < 20; hour++) {
-      for (let min = 0; min < 60; min += 10) {
-        const time = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-        slots.push(time);
+    for (let hour = startHour; hour < 24; hour++) {
+      const minStart = hour === startHour ? startMinute : 0;
+      for (let min = minStart; min < 60; min += 10) {
+        slots.push(
+          `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`
+        );
       }
     }
     return slots;
@@ -58,23 +66,63 @@ const CartPage = () => {
       setLoading(true);
       setError('');
 
-      // Prepare order data
       const orderData = {
         items: items.map(item => ({
           menuItemId: item.menuItem.id,
           quantity: item.quantity,
           notes: item.notes
         })),
-        pickupTime: new Date().toISOString().split('T')[0] + 'T' + pickupTime + ':00',
-        notes,
-        paymentMethod: 'cash'
+        pickupTime: pickupTime === 'ASAP'
+          ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
+          : new Date().toISOString().split('T')[0] + 'T' + pickupTime + ':00',
+        notes
       };
 
-      const response = await orderApi.create(orderData);
-      
-      // Clear cart and navigate to confirmation
-      clearCart();
-      navigate(`/orders/${response.data.data.order.id}/confirm`);
+      const scriptLoaded = await loadRazorpayCheckout();
+      if (!scriptLoaded) {
+        throw new Error('Unable to load Razorpay checkout. Check your connection and try again.');
+      }
+
+      const response = await orderApi.checkout(orderData);
+      const { order, razorpayOrder, razorpayKeyId } = response.data.data;
+
+      const razorpay = new window.Razorpay({
+        key: razorpayKeyId,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: 'Prebite',
+        description: `Order ${order.id.slice(0, 8).toUpperCase()}`,
+        order_id: razorpayOrder.id,
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || ''
+        },
+        theme: {
+          color: '#ed700e'
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+          }
+        },
+        handler: async (paymentResponse) => {
+          try {
+            const verification = await orderApi.verifyPayment({
+              orderId: order.id,
+              ...paymentResponse
+            });
+
+            clearCart();
+            navigate(`/orders/${verification.data.data.order.id}/confirm`);
+          } catch (verificationError) {
+            console.error('Payment verification error:', verificationError);
+            setError(verificationError.response?.data?.message || 'Payment was captured but verification failed. Contact support.');
+            setLoading(false);
+          }
+        }
+      });
+
+      razorpay.open();
     } catch (err) {
       console.error('Order error:', err);
       setError(err.response?.data?.message || 'Failed to place order. Please try again.');
@@ -128,6 +176,7 @@ const CartPage = () => {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Choose a time...</option>
+                  <option value="ASAP">ASAP (~15 min)</option>
                   {timeSlots.map(slot => (
                     <option key={slot} value={slot}>{slot}</option>
                   ))}
@@ -173,7 +222,7 @@ const CartPage = () => {
                 disabled={loading || !pickupTime}
                 className="w-full btn-primary mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Placing Order...' : 'Place Order'}
+                {loading ? 'Starting Payment...' : 'Pay with Razorpay'}
               </button>
             </div>
           </div>

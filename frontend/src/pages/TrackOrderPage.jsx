@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Clock, MapPin } from 'lucide-react';
+import { Clock, Ticket } from 'lucide-react';
 import { orderApi } from '../api/orderApi';
 import OrderStatusBadge from '../components/order/OrderStatusBadge';
 import OrderTimeline from '../components/order/OrderTimeline';
@@ -85,7 +85,7 @@ const TrackOrderPage = () => {
         {/* Pickup Info */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h2 className="font-semibold text-lg mb-4">Pickup Information</h2>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center">
               <Clock className="w-5 h-5 text-primary-500 mr-2" />
               <div>
@@ -94,6 +94,12 @@ const TrackOrderPage = () => {
                 <p className="text-sm text-gray-500">{formattedDate}</p>
               </div>
             </div>
+            {order.tokenCode && (
+              <div className="text-right">
+                <p className="text-sm text-gray-500 flex items-center justify-end gap-1"><Ticket className="w-4 h-4" /> Pickup Token</p>
+                <p className="font-mono font-bold text-lg tracking-[0.25em] text-primary-600">{order.tokenCode}</p>
+              </div>
+            )}
           </div>
         </div>
 

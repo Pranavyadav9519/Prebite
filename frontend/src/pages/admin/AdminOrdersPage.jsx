@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw, Check, ChefHat, Package, CheckCircle } from 'lucide-react';
+import { RefreshCw, ChefHat, Package, CheckCircle } from 'lucide-react';
 import { orderApi } from '../../api/orderApi';
 import OrderStatusBadge from '../../components/order/OrderStatusBadge';
 
@@ -7,13 +7,15 @@ const AdminOrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [tokenCode, setTokenCode] = useState('');
+  const [tokenMessage, setTokenMessage] = useState('');
+  const [tokenError, setTokenError] = useState('');
 
   useEffect(() => {
     fetchOrders();
-    // Auto-refresh every 30 seconds
     const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [filter]);
 
   const fetchOrders = async () => {
     try {
@@ -37,10 +39,9 @@ const AdminOrdersPage = () => {
 
   const getNextStatus = (currentStatus) => {
     const statusFlow = {
-      placed: 'confirmed',
-      confirmed: 'preparing',
-      preparing: 'ready',
-      ready: 'picked_up'
+      PAID: 'PREPARING',
+      PREPARING: 'READY',
+      READY: 'COMPLETED'
     };
     return statusFlow[currentStatus];
   };
@@ -50,9 +51,9 @@ const AdminOrdersPage = () => {
     if (!nextStatus) return null;
 
     const buttons = {
-      confirmed: { label: 'Start Preparing', icon: ChefHat, color: 'bg-orange-500' },
-      preparing: { label: 'Mark Ready', icon: Package, color: 'bg-green-500' },
-      ready: { label: 'Picked Up', icon: CheckCircle, color: 'bg-gray-500' }
+      PREPARING: { label: 'Start Preparing', icon: ChefHat, color: 'bg-orange-500' },
+      READY: { label: 'Mark Ready', icon: Package, color: 'bg-green-500' },
+      COMPLETED: { label: 'Mark Completed', icon: CheckCircle, color: 'bg-gray-500' }
     };
 
     return buttons[nextStatus];
@@ -65,10 +66,24 @@ const AdminOrdersPage = () => {
 
   const statusCounts = {
     all: orders.length,
-    placed: orders.filter(o => o.status === 'placed').length,
-    confirmed: orders.filter(o => o.status === 'confirmed').length,
-    preparing: orders.filter(o => o.status === 'preparing').length,
-    ready: orders.filter(o => o.status === 'ready').length
+    PENDING_PAYMENT: orders.filter(o => o.status === 'PENDING_PAYMENT').length,
+    PAID: orders.filter(o => o.status === 'PAID').length,
+    PREPARING: orders.filter(o => o.status === 'PREPARING').length,
+    READY: orders.filter(o => o.status === 'READY').length,
+    COMPLETED: orders.filter(o => o.status === 'COMPLETED').length
+  };
+
+  const handleTokenVerification = async () => {
+    try {
+      setTokenError('');
+      setTokenMessage('');
+      const response = await orderApi.verifyToken(tokenCode);
+      setTokenMessage(`Token verified for order ${response.data.data.order.id.slice(0, 8).toUpperCase()}`);
+      setTokenCode('');
+      fetchOrders();
+    } catch (err) {
+      setTokenError(err.response?.data?.message || 'Failed to verify pickup token');
+    }
   };
 
   return (
@@ -84,9 +99,28 @@ const AdminOrdersPage = () => {
         </button>
       </div>
 
+      <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-3">Pickup Token Verification</h2>
+        <div className="flex flex-col md:flex-row gap-3">
+          <input
+            type="text"
+            value={tokenCode}
+            onChange={(event) => setTokenCode(event.target.value.toUpperCase())}
+            placeholder="Enter 6-character pickup token"
+            className="input-field font-mono tracking-[0.3em] uppercase"
+            maxLength={6}
+          />
+          <button onClick={handleTokenVerification} disabled={tokenCode.trim().length < 6} className="btn-primary disabled:opacity-50">
+            Verify Token
+          </button>
+        </div>
+        {tokenMessage && <p className="text-sm text-green-600 mt-3">{tokenMessage}</p>}
+        {tokenError && <p className="text-sm text-red-600 mt-3">{tokenError}</p>}
+      </div>
+
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {['all', 'placed', 'confirmed', 'preparing', 'ready'].map((status) => (
+        {['all', 'PENDING_PAYMENT', 'PAID', 'PREPARING', 'READY', 'COMPLETED'].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -96,7 +130,7 @@ const AdminOrdersPage = () => {
                 : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
           >
-            {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+            {status === 'all' ? 'All' : status.split('_').join(' ')}
             <span className="ml-2 px-2 py-0.5 bg-white bg-opacity-20 rounded-full text-sm">
               {statusCounts[status]}
             </span>
@@ -117,7 +151,7 @@ const AdminOrdersPage = () => {
           {filteredOrders.map((order) => {
             const statusButton = getStatusButton(order.status);
             const pickupTime = new Date(order.pickupTime);
-            const isOverdue = pickupTime < new Date() && order.status !== 'picked_up';
+            const isOverdue = pickupTime < new Date() && !['COMPLETED', 'CANCELLED'].includes(order.status);
 
             return (
               <div
@@ -162,6 +196,10 @@ const AdminOrdersPage = () => {
                       </div>
                     </div>
 
+                    {order.tokenCode && (
+                      <p className="mt-3 text-sm text-gray-600">Pickup token: <span className="font-mono font-semibold tracking-[0.25em]">{order.tokenCode}</span></p>
+                    )}
+
                     {/* Order Items */}
                     <div className="mt-4 pt-4 border-t">
                       <div className="flex flex-wrap gap-2">
@@ -181,15 +219,6 @@ const AdminOrdersPage = () => {
 
                   {/* Actions */}
                   <div className="flex flex-col gap-2">
-                    {order.status === 'placed' && (
-                      <button
-                        onClick={() => handleStatusUpdate(order.id, 'confirmed')}
-                        className="btn-primary flex items-center justify-center space-x-2"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>Confirm</span>
-                      </button>
-                    )}
                     {statusButton && (
                       <button
                         onClick={() => handleStatusUpdate(order.id, getNextStatus(order.status))}

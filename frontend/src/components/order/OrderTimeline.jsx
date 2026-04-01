@@ -1,15 +1,22 @@
-import { Check, Clock, ChefHat, Package, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, CreditCard, ChefHat, Package, ShoppingBag } from 'lucide-react';
 
 const steps = [
-  { key: 'placed', label: 'Order Placed', icon: ShoppingBag },
-  { key: 'confirmed', label: 'Confirmed', icon: Check },
-  { key: 'preparing', label: 'Preparing', icon: ChefHat },
-  { key: 'ready', label: 'Ready', icon: Package },
-  { key: 'picked_up', label: 'Picked Up', icon: ShoppingBag }
+  { key: 'PENDING_PAYMENT', label: 'Pending Payment', icon: CreditCard },
+  { key: 'PAID', label: 'Paid', icon: ShoppingBag },
+  { key: 'PREPARING', label: 'Preparing', icon: ChefHat },
+  { key: 'READY', label: 'Ready', icon: Package },
+  { key: 'COMPLETED', label: 'Completed', icon: CheckCircle2 }
 ];
 
 const OrderTimeline = ({ currentStatus }) => {
-  const currentIndex = steps.findIndex(step => step.key === currentStatus);
+  const normalizedStatus = {
+    placed: 'PENDING_PAYMENT',
+    confirmed: 'PAID',
+    preparing: 'PREPARING',
+    ready: 'READY',
+    picked_up: 'COMPLETED'
+  }[currentStatus] || currentStatus;
+  const currentIndex = Math.max(steps.findIndex(step => step.key === normalizedStatus), 0);
 
   return (
     <div className="w-full">

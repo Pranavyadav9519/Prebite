@@ -83,7 +83,7 @@ const MyOrdersPage = () => {
 
                   {/* Actions */}
                   <div className="flex flex-col gap-2">
-                    {order.status !== 'picked_up' && (
+                    {![ 'COMPLETED', 'CANCELLED', 'picked_up' ].includes(order.status) && (
                       <Link
                         to={`/orders/${order.id}/track`}
                         className="btn-primary text-center"

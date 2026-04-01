@@ -60,6 +60,9 @@ cd ../frontend && npm install
 # Backend
 cp backend/.env.example backend/.env
 # Edit backend/.env — set JWT_SECRET and JWT_REFRESH_SECRET to strong random strings
+# Add Razorpay test/live credentials before using the payment flow:
+# RAZORPAY_KEY_ID=rzp_test_xxxxx
+# RAZORPAY_KEY_SECRET=xxxxx
 
 # Frontend
 cp frontend/.env.example frontend/.env
@@ -67,6 +70,8 @@ cp frontend/.env.example frontend/.env
 ```
 
 > ⚠️ **JWT_SECRET** and **JWT_REFRESH_SECRET** are **required**. The server will refuse to start without them.
+>
+> ⚠️ **RAZORPAY_KEY_ID** and **RAZORPAY_KEY_SECRET** are required for the hosted checkout flow. Without them, `/api/v1/orders/checkout` returns `503` by design.
 
 ### 4. Set up the database
 

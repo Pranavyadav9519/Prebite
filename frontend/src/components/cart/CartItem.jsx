@@ -1,6 +1,8 @@
 import { Plus, Minus, Trash2 } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore';
 
+const fallbackImage = '/fallback-food.svg';
+
 const CartItem = ({ item }) => {
   const { updateQuantity, removeItem, updateNotes } = useCartStore();
 
@@ -10,8 +12,12 @@ const CartItem = ({ item }) => {
         {/* Image */}
         <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
           <img
-            src={item.menuItem.imageUrl || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400'}
+            src={item.menuItem.imageUrl || fallbackImage}
             alt={item.menuItem.name}
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = fallbackImage;
+            }}
             className="w-full h-full object-cover"
           />
         </div>

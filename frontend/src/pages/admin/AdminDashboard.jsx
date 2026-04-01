@@ -18,8 +18,14 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await analyticsApi.getDaily();
-      setStats(response.data.data);
+      const response = await analyticsApi.getDashboard();
+      const data = response.data.data;
+      setStats({
+        todayOrders: data.todayOrderCount,
+        todayRevenue: data.todayRevenue,
+        pendingOrders: data.pendingOrders,
+        totalItems: data.menuItemsCount
+      });
     } catch (err) {
       console.error('Error fetching stats:', err);
     } finally {

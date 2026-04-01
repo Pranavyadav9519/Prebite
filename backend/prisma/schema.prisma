@@ -42,11 +42,16 @@ model MenuItem {
 model Order {
   id          String    @id @default(uuid())
   userId      String    @map("user_id")
-  status      String    @default("placed")
+  status      String    @default("PENDING_PAYMENT")
   totalAmount Float     @map("total_amount")
   pickupTime  DateTime  @map("pickup_time")
   qrCode      String?   @map("qr_code")
+  tokenCode   String?   @unique @map("token_code")
   notes       String?
+  currency    String    @default("INR")
+  paymentProvider  String? @map("payment_provider")
+  providerOrderId  String? @unique @map("provider_order_id")
+  providerPaymentId String? @unique @map("provider_payment_id")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -77,6 +82,9 @@ model Payment {
   amount    Float
   method    String
   status    String   @default("pending")
+  providerOrderId String? @map("provider_order_id")
+  providerPaymentId String? @map("provider_payment_id")
+  providerSignature String? @map("provider_signature")
   paidAt    DateTime? @map("paid_at")
   createdAt DateTime @default(now()) @map("created_at")
 

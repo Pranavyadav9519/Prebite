@@ -53,8 +53,8 @@ const OrderConfirmPage = () => {
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
             <CheckCircle className="w-12 h-12 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">Order Placed Successfully!</h1>
-          <p className="text-gray-500 mt-2">Your order has been confirmed</p>
+          <h1 className="text-2xl font-bold text-gray-800">Payment Successful!</h1>
+          <p className="text-gray-500 mt-2">Your order is confirmed and your pickup token is ready</p>
         </div>
 
         {/* Order Details Card */}
@@ -64,11 +64,18 @@ const OrderConfirmPage = () => {
             <p className="text-xl font-mono font-bold text-primary-500">{order.id.slice(0, 8).toUpperCase()}</p>
           </div>
 
+          {order.tokenCode && (
+            <div className="text-center mb-6 p-4 bg-primary-50 rounded-lg border border-primary-100">
+              <p className="text-sm text-gray-600">Pickup Token</p>
+              <p className="text-3xl font-mono font-bold tracking-[0.35em] text-primary-600 ml-[0.35em]">{order.tokenCode}</p>
+            </div>
+          )}
+
           {/* QR Code */}
           {order.qrCode && (
             <div className="text-center mb-6 p-4 bg-gray-50 rounded-lg">
               <QrCode className="w-16 h-16 mx-auto mb-2 text-gray-600" />
-              <p className="text-sm text-gray-500">Show this QR code at pickup</p>
+              <p className="text-sm text-gray-500">Show this QR code or share your pickup token at collection</p>
               <img 
                 src={order.qrCode} 
                 alt="Order QR Code" 

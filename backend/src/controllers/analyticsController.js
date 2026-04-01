@@ -38,11 +38,12 @@ const getDailyAnalytics = async (req, res, next) => {
     
     // Status counts
     const statusCounts = {
-      placed: 0,
-      confirmed: 0,
-      preparing: 0,
-      ready: 0,
-      picked_up: 0
+      PENDING_PAYMENT: 0,
+      PAID: 0,
+      PREPARING: 0,
+      READY: 0,
+      COMPLETED: 0,
+      CANCELLED: 0
     };
 
     orders.forEach(order => {
@@ -184,7 +185,7 @@ const getDashboardSummary = async (req, res, next) => {
     const pendingOrders = await prisma.order.count({
       where: {
         status: {
-          not: 'picked_up'
+          notIn: ['COMPLETED', 'CANCELLED']
         }
       }
     });

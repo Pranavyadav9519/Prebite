@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { menuApi } from '../../api/menuApi';
 
+const fallbackImage = '/fallback-food.svg';
+
 const AdminMenuPage = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,8 +132,12 @@ const AdminMenuPage = () => {
                     <div className="flex items-center">
                       <div className="w-12 h-12 rounded-lg overflow-hidden mr-3">
                         <img
-                          src={item.imageUrl || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=100'}
+                          src={item.imageUrl || fallbackImage}
                           alt={item.name}
+                          onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = fallbackImage;
+                          }}
                           className="w-full h-full object-cover"
                         />
                       </div>

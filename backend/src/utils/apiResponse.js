@@ -4,6 +4,7 @@ const apiResponse = {
     return res.status(statusCode).json({
       success: true,
       message,
+      data,
       ...data
     });
   },

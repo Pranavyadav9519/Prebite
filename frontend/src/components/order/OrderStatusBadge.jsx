@@ -1,4 +1,10 @@
 const statusColors = {
+  PENDING_PAYMENT: 'bg-slate-100 text-slate-800',
+  PAID: 'bg-emerald-100 text-emerald-800',
+  PREPARING: 'bg-orange-100 text-orange-800',
+  READY: 'bg-green-100 text-green-800',
+  COMPLETED: 'bg-gray-100 text-gray-800',
+  CANCELLED: 'bg-red-100 text-red-800',
   placed: 'bg-blue-100 text-blue-800',
   confirmed: 'bg-yellow-100 text-yellow-800',
   preparing: 'bg-orange-100 text-orange-800',
@@ -7,6 +13,12 @@ const statusColors = {
 };
 
 const statusLabels = {
+  PENDING_PAYMENT: 'Awaiting Payment',
+  PAID: 'Paid',
+  PREPARING: 'Preparing',
+  READY: 'Ready for Pickup',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
   placed: 'Placed',
   confirmed: 'Confirmed',
   preparing: 'Preparing',
