@@ -62,9 +62,27 @@ const CartPage = () => {
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
-      setLoading(true);
-      setError('');
+      // Build pickup ISO time using local date to avoid UTC timezone mismatch
+      let pickupISOTime;
+      if (pickupTime === 'ASAP') {
+        pickupISOTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      } else {
+        const now = new Date();
+        const [hours, minutes] = pickupTime.split(':').map(Number);
+        const localPickup = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          hours,
+          minutes,
+          0
+        );
+        pickupISOTime = localPickup.toISOString();
+      }
 
       const orderData = {
         items: items.map(item => ({
@@ -72,9 +90,7 @@ const CartPage = () => {
           quantity: item.quantity,
           notes: item.notes
         })),
-        pickupTime: pickupTime === 'ASAP'
-          ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
-          : new Date().toISOString().split('T')[0] + 'T' + pickupTime + ':00',
+        pickupTime: pickupISOTime,
         notes
       };
 
@@ -102,6 +118,7 @@ const CartPage = () => {
         },
         modal: {
           ondismiss: () => {
+            // User closed the modal without paying
             setLoading(false);
           }
         },
@@ -111,7 +128,6 @@ const CartPage = () => {
               orderId: order.id,
               ...paymentResponse
             });
-
             clearCart();
             navigate(`/orders/${verification.data.data.order.id}/confirm`);
           } catch (verificationError) {
@@ -122,11 +138,11 @@ const CartPage = () => {
         }
       });
 
+      // Don't reset loading here — the modal is open; handler/ondismiss will reset it
       razorpay.open();
     } catch (err) {
       console.error('Order error:', err);
       setError(err.response?.data?.message || 'Failed to place order. Please try again.');
-    } finally {
       setLoading(false);
     }
   };

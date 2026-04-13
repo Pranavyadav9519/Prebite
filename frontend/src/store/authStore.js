@@ -34,7 +34,15 @@ export const useAuthStore = create(
       }
     }),
     {
-      name: 'prebite-auth'
+      name: 'prebite-auth',
+      storage: {
+        getItem: (key) => {
+          const item = sessionStorage.getItem(key);
+          return item ? JSON.parse(item) : null;
+        },
+        setItem: (key, value) => sessionStorage.setItem(key, JSON.stringify(value)),
+        removeItem: (key) => sessionStorage.removeItem(key),
+      },
     }
   )
 );

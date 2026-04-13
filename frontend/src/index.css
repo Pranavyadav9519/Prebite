@@ -3,8 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply font-sans text-gray-800 bg-gray-50;
+    overflow-x: hidden;
   }
 }
 
@@ -12,17 +17,90 @@
   .btn-primary {
     @apply bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
   }
-  
+
   .btn-secondary {
     @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
   }
-  
+
   .card {
     @apply bg-white rounded-xl shadow-md overflow-hidden;
   }
-  
+
   .input-field {
     @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
   }
-}
 
+  /* ── Fullpage Scroll Container ─────────────────────────────────────── */
+  .fullpage-container {
+    height: calc(100vh - 64px); /* subtract navbar height (h-16 = 64px) */
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
+  }
+
+  /* ── Each Snap Section ─────────────────────────────────────────────── */
+  .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    position: relative;
+  }
+
+  /* ── Section entrance animation (hidden by default) ───────────────── */
+  .section-animate {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .section-animate.section-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Floating food emoji animation ────────────────────────────────── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33%       { transform: translateY(-18px) rotate(4deg); }
+    66%       { transform: translateY(-8px) rotate(-3deg); }
+  }
+
+  .floating-emoji {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* ── Text gradient ─────────────────────────────────────────────────── */
+  .text-gradient {
+    background: linear-gradient(135deg, #f97316 0%, #eab308 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-warm {
+    background: linear-gradient(135deg, #fb923c 0%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Step card stagger ─────────────────────────────────────────────── */
+  .section-visible .step-card:nth-child(1) { animation: slideUp 0.6s 0.1s both; }
+  .section-visible .step-card:nth-child(2) { animation: slideUp 0.6s 0.25s both; }
+  .section-visible .step-card:nth-child(3) { animation: slideUp 0.6s 0.4s both; }
+
+  .section-visible .feature-card { animation: fadeIn 0.5s var(--delay, 0ms) both; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+}

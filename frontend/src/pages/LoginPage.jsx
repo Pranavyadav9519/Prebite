@@ -115,14 +115,7 @@ const LoginPage = () => {
             </Link>
           </p>
 
-          {/* Demo Credentials */}
-          {import.meta.env.DEV && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 mb-2">Demo Credentials:</p>
-            <p className="text-xs text-gray-400">Admin: admin@prebite.com / admin123</p>
-            <p className="text-xs text-gray-400">Student: student@prebite.com / student123</p>
-          </div>
-          )}
+
         </div>
       </div>
     </div>

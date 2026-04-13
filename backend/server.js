@@ -4,6 +4,8 @@ const { Server } = require('socket.io');
 const http = require('http');
 const prisma = require('./src/config/db');
 
+const jwt = require('jsonwebtoken');
+
 const PORT = process.env.PORT || 4000;
 
 const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
@@ -20,6 +22,28 @@ const io = new Server(server, {
   }
 });
 
+// Socket.io JWT authentication middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) {
+    // Allow unauthenticated connections — they just can't join privileged rooms
+    socket.userId = null;
+    socket.userRole = null;
+    return next();
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId;
+    socket.userRole = decoded.role;
+    next();
+  } catch {
+    // Invalid token — treat as unauthenticated
+    socket.userId = null;
+    socket.userRole = null;
+    next();
+  }
+});
+
 // Make io accessible in requests
 app.set('io', io);
 
@@ -27,8 +51,12 @@ app.set('io', io);
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
-  // Join admin room for real-time updates
+  // Join admin room — only verified admin users may join
   socket.on('join:admin', () => {
+    if (socket.userRole !== 'admin') {
+      socket.emit('error', { message: 'Unauthorized' });
+      return;
+    }
     socket.join('admin');
     console.log('Admin joined:', socket.id);
   });

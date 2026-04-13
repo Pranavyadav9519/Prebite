@@ -281,7 +281,7 @@ const checkoutOrder = async (req, res, next) => {
       razorpayOrder: {
         id: createdOrder.providerOrderId,
         amount: Math.round(createdOrder.totalAmount * 100),
-        currency: createdOrder.currency
+        currency: 'INR'
       },
       razorpayKeyId: keyId
     }, 'Checkout created successfully');
