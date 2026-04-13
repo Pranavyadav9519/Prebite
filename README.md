@@ -1,6 +1,16 @@
 # Prebite — Canteen Pre-Order System
 
-Prebite is a full-stack canteen pre-order web application that allows students to browse the menu, place orders in advance, and track them in real time. Admins can manage the menu and update order statuses from a dedicated dashboard.
+Prebite is a premium, full-stack canteen pre-order web application designed to eliminate long queues. It features a modern, high-conversion "Full-Page Scroll" landing page, real-time order tracking, and a secure payment gateway integration.
+
+---
+
+## What's New in v2.0 🚀
+
+- **✨ Full-Page Scroll UI**: A premium, "Apple-style" landing page experience where sections snap vertically for high impact.
+- **🛡️ Socket.io Hardening**: Secure WebSocket connections using JWT handshake authentication.
+- **🔐 Enhanced Token Safety**: Migrated JWT storage to `sessionStorage` to mitigate persistent XSS risks.
+- **📱 Optimized Aesthetic**: Compact, canteen-themed design with floating food elements and refined typography.
+- **💳 Fully Integrated Razorpay**: Seamless checkout flow with localized timezone handling for pickup.
 
 ---
 
@@ -8,23 +18,24 @@ Prebite is a full-stack canteen pre-order web application that allows students t
 
 | Layer     | Technology                                      |
 |-----------|-------------------------------------------------|
-| Frontend  | React 18, Vite, Tailwind CSS, Zustand, Axios    |
+| Frontend  | React 18, Vite, Tailwind CSS, Zustand, Lucide Icons |
 | Backend   | Node.js, Express, Prisma ORM, SQLite / PostgreSQL |
-| Real-time | Socket.io                                       |
-| Auth      | JSON Web Tokens (JWT) — access + refresh tokens |
+| Real-time | Socket.io (Auth-protected)                      |
+| Auth      | JWT (Access + Refresh) / Session Management     |
+| Payment   | Razorpay SDK                                    |
 
 ---
 
 ## Features
 
-- 🍽️ Browse categorised canteen menu with search & filter
-- 🛒 Cart management with quantity controls
-- 📦 Place pre-orders and receive a confirmation QR code
-- 📡 Real-time order status updates via WebSocket
-- 🔐 JWT-based authentication (access + refresh tokens)
-- 👤 Role-based access control (admin / student)
-- 📊 Admin analytics dashboard
-- 🛡️ Security hardened with Helmet, CORS restrictions, and rate limiting
+- 🥡 **Full-Page Snap Scroll**: Engaging landing page sections (Hero, How It Works, Features, Testimonials).
+- 🍽️ **Smart Menu**: Categorised menu with real-time availability.
+- 🛒 **Intuitive Cart**: Quantity controls and special instruction notes.
+- 📦 **QR Code Pickups**: Secure token generation and QR code confirmation for staff verification.
+- 📡 **Live Updates**: Real-time status tracking (Preparing → Ready → Collected).
+- 🔐 **Secure Auth**: Role-based access (Admin / Student) with hardened session security.
+- 📊 **Admin Power**: Comprehensive dashboard for menu management and order analytics.
+- 🛡️ **Cyber Shield**: Hardened with Helmet, Rate Limiting, and Handshake Verification.
 
 ---
 
