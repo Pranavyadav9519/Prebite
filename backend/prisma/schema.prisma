@@ -1,11 +1,11 @@
-// Prisma Schema for Prebite Canteen Pre-Order System (SQLite)
+// Prisma Schema for Prebite Canteen Pre-Order System (PostgreSQL)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
