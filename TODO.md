@@ -9,20 +9,20 @@
 
 ## Phase 2: Backend Development
 
-## Phase 2: Backend Development
-- [ ] 2.1 Create Prisma schema with real menu items
-- [ ] 2.2 Implement authentication (JWT)
-- [ ] 2.3 Create menu API endpoints
-- [ ] 2.4 Create order API endpoints
-- [ ] 2.5 Set up Socket.io for real-time updates
+## Phase 2: Backend Development ✅
+- [x] 2.1 Create Prisma schema with real menu items
+- [x] 2.2 Implement authentication (JWT)
+- [x] 2.3 Create menu API endpoints
+- [x] 2.4 Create order API endpoints
+- [x] 2.5 Set up Socket.io for real-time updates
 
-## Phase 3: Frontend Development
-- [ ] 3.1 Create React components (Navbar, Footer, MenuCard, etc.)
-- [ ] 3.2 Implement authentication pages (Login/Register)
-- [ ] 3.3 Build Menu page with real items
-- [ ] 3.4 Build Cart functionality
-- [ ] 3.5 Build Order confirmation and tracking pages
-- [ ] 3.6 Build Admin dashboard
+## Phase 3: Frontend Development ✅
+- [x] 3.1 Create React components (Navbar, Footer, MenuCard, etc.)
+- [x] 3.2 Implement authentication pages (Login/Register)
+- [x] 3.3 Build Menu page with real items
+- [x] 3.4 Build Cart functionality
+- [x] 3.5 Build Order confirmation and tracking pages
+- [x] 3.6 Build Admin dashboard
 
 ## Phase 4: Real Menu Data
 - [ ] 4.1 Add real Indian canteen menu items (Dosa, Sandwich, Tea, Coffee, Idli, Vada, etc.)
