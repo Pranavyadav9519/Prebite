@@ -147,6 +147,60 @@ const CartPage = () => {
     }
   };
 
+  const handleDemoOrder = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    if (!pickupTime) {
+      setError('Please select a pickup time');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      let pickupISOTime;
+      if (pickupTime === 'ASAP') {
+        pickupISOTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      } else {
+        const now = new Date();
+        const [hours, minutes] = pickupTime.split(':').map(Number);
+        const localPickup = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          hours,
+          minutes,
+          0
+        );
+        pickupISOTime = localPickup.toISOString();
+      }
+
+      const orderData = {
+        items: items.map(item => ({
+          menuItemId: item.menuItem.id,
+          quantity: item.quantity,
+          notes: item.notes
+        })),
+        pickupTime: pickupISOTime,
+        notes,
+        paymentMethod: 'demo'
+      };
+
+      const response = await orderApi.create(orderData);
+      clearCart();
+      navigate(`/orders/${response.data.data.order.id}/confirm`);
+    } catch (err) {
+      console.error('Demo order error:', err);
+      setError(err.response?.data?.message || 'Failed to place demo order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
@@ -232,13 +286,20 @@ const CartPage = () => {
                 </div>
               </div>
 
-              {/* Place Order Button */}
+              {/* Place Order Buttons */}
               <button
                 onClick={handlePlaceOrder}
                 disabled={loading || !pickupTime}
                 className="w-full btn-primary mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Starting Payment...' : 'Pay with Razorpay'}
+              </button>
+              <button
+                onClick={handleDemoOrder}
+                disabled={loading || !pickupTime}
+                className="w-full btn-secondary mt-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Processing Demo Order...' : 'Demo Pay (Skip Gateway)'}
               </button>
             </div>
           </div>
