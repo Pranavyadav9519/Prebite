@@ -39,12 +39,12 @@ const MenuPage = () => {
       params.available = 'true';
 
       const response = await menuApi.getAll(params);
-      setMenuItems(response.data.menuItems);
+      setMenuItems(response.data.data.menuItems);
 
       // Fetch categories if not already loaded
       if (categories.length === 1) {
         const catResponse = await menuApi.getCategories();
-        setCategories(catResponse.data.categories);
+        setCategories(catResponse.data.data.categories);
       }
     } catch (err) {
       console.error('Error fetching menu:', err);
